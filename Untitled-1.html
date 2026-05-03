@@ -1,0 +1,138 @@
+html<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareNear — Elder Care Platform</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <script src="https://cloudflare.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-screen">
+        <div class="login-wrap">
+            <div class="login-left">
+                <div class="login-logo"><span>🌿</span> CareNear</div>
+                <h2>Compassionate care, closer than ever.</h2>
+                <div class="feature-list">
+                    <div class="feature-item">📅 Smart Scheduling</div>
+                    <div class="feature-item">🏥 Health Tracking</div>
+                </div>
+            </div>
+            <div class="login-right">
+                <h3>Welcome back</h3>
+                <div class="role-tabs">
+                    <div class="role-tab active" onclick="setRole('family')">🏠 FAMILY</div>
+                    <div class="role-tab" onclick="setRole('caregiver')">🩺 CAREGIVER</div>
+                </div>
+                <input type="email" class="form-input" placeholder="name@email.com" style="margin-bottom:10px">
+                <input type="password" class="form-input" placeholder="••••••••" style="margin-bottom:10px">
+                <button class="login-btn" onclick="handleLogin()">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <nav class="sidebar">
+            <div class="sidebar-logo">🌿 CareNear</div>
+            <button class="nav-item active" onclick="showPage('dashboard-page')">📊 Overview</button>
+            <button class="nav-item" onclick="showPage('profile-page')">👤 Patient Profile</button>
+            <div class="sidebar-footer">
+                <div class="parent-mini"><div class="mini-av">EP</div> Eliza Park</div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h1 class="topbar-title">Care Dashboard</h1>
+                <div class="topbar-right">
+                    <button class="sos-btn" onclick="triggerSOS()">SOS</button>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+            </header>
+
+            <!-- Page 1: Dashboard -->
+            <div class="page" id="dashboard-page" style="display: block; padding: 20px;">
+                <div class="dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <div class="card"><canvas id="careChart"></canvas></div>
+                    <div class="card">
+                        <h3>Meds</h3>
+                        <div id="medication-list"></div>
+                        <h3 style="margin-top:20px; color:var(--red)">Alerts</h3>
+                        <div id="alert-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 2: Profile -->
+            <div class="page" id="profile-page" style="display: none; padding: 20px;">
+                <div class="card">
+                    <h2>Eliza Park (84)</h2>
+                    <p>Primary Physician: Dr. Jenkins</p>
+                    <p>📞 (555) 012-3456</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>:root {
+  --sage:#4a7c59; --sage-pale:#eef7f1; --red:#c94040; --red-light:#fdeaea;
+  --g200:#e9ebee; --g900:#111827; --white:#fff; --r-md:16px;
+}
+body { font-family:'Nunito',sans-serif; background:#eef1f6; margin:0; overflow:hidden; }
+#login-screen { position:fixed; inset:0; z-index:999; background:var(--sage); display:flex; align-items:center; justify-content:center; }
+#login-screen.hiding { display:none; }
+.login-wrap { display:grid; grid-template-columns:1fr 1fr; width:800px; background:white; border-radius:var(--r-md); overflow:hidden; }
+.login-left { background:var(--g900); color:white; padding:40px; }
+.login-right { padding:40px; }
+#app { display:none; height:100vh; }
+#app.visible { display:flex; }
+.sidebar { width:220px; background:var(--g900); color:white; }
+.nav-item { width:100%; padding:15px; background:none; border:none; color:white; text-align:left; cursor:pointer; }
+.nav-item.active { background:var(--sage); }
+.main-content { flex:1; overflow-y:auto; }
+.topbar { background:white; padding:15px; display:flex; justify-content:space-between; border-bottom:1px solid var(--g200); }
+.card { background:white; padding:20px; border-radius:var(--r-md); margin-bottom:20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.sos-btn { background:var(--red); color:white; border:none; padding:8px 20px; border-radius:50px; cursor:pointer; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity:1; } 50% { opacity:0.7; } 100% { opacity:1; } }
+.med-item, .alert-item { padding:10px; border-bottom:1px solid var(--g200); font-size:14px; }
+function setRole(role) {
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+function handleLogin() {
+    document.getElementById('login-screen').classList.add('hiding');
+    document.getElementById('app').classList.add('visible');
+    initChart();
+    renderMeds();
+    renderAlerts();
+}
+
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+    document.getElementById(pageId).style.display = 'block';
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
+
+function renderMeds() {
+    const meds = [{n:"Lisinopril", t:"08:00 AM"}, {n:"Metformin", t:"12:30 PM"}];
+    document.getElementById('medication-list').innerHTML = meds.map(m => `<div class="med-item"><b>${m.t}</b> - ${m.n}</div>`).join('');
+}
+
+function renderAlerts() {
+    const alerts = ["⚠️ Blood Pressure high (150/95)"];
+    document.getElementById('alert-list').innerHTML = alerts.map(a => `<div class="alert-item" style="color:red">${a}</div>`).join('');
+}
+
+function initChart() {
+    new Chart(document.getElementById('careChart'), {
+        type: 'bar',
+        data: { labels: ['M','T','W','T','F','S','S'], datasets: [{ label: 'Hours', data: [2,4,3,5,2,3,4], backgroundColor: '#4a7c59' }] }
+    });
+}
+
+function triggerSOS() { alert("EMERGENCY ALERT SENT!"); }
+function handleLogout() { location.reload(); }
